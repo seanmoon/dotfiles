@@ -11,14 +11,6 @@ filetype plugin indent on
 
 " SHORTCUT KEY MAPPINGS """""""""""""""""""
 
-"ctrl+alt+f for ack current word in command mode
-map <C-M-f> :call AckGrep()<CR>
-function! AckGrep()
-  let command = "ack ".expand("<cword>")
-  cexpr system(command)
-  cw
-endfunction
-
 "prev/next in quickfix file listing (e.g. search results)
 map <M-D-Down> :cn<CR>
 map <M-D-Up> :cp<CR>
@@ -35,13 +27,11 @@ vmap <s-tab> <gv
 map <D-z> :earlier 1<CR>
 map <D-Z> :later 1<CR>
 
-"file tree browser - backslash
+" File tree browser - backslash
 map \ :NERDTreeToggle<CR>
 
-"comment/uncomment visual selection with cmd+/
-vmap <D-/> <plug>NERDCommenterToggle
-"comment/uncomment current line with cmd+/
-nmap <D-/> <plug>NERDCommenterToggle
+" File tree browser showing current file - pipe (shift-backslash)
+map \| :NERDTreeFind<CR>
 
 "strip trailing whitespace on save for code files
 "cocoa
@@ -51,18 +41,9 @@ autocmd BufWritePre *.rb,*.yml,*.js,*.css,*.less,*.sass,*.html,*.xml,*.erb,*.ham
 "misc
 autocmd BufWritePre *.java,*.php :%s/\s\+$//e
 
-
 " SETTINGS """"""""""""""""""""""""""""""""
-if has("gui_macvim")
-  set t_Co=256
-  colorscheme vividchalk
-endif
-
-"Minibuf tab colors - must be set after colorscheme
-"Changed + Hidden buffers
-hi MBEChanged guibg=darkred ctermbg=darkred guifg=red ctermfg=red
-"Changed + Visible buffers
-hi MBEVisibleChanged guifg=darkred ctermfg=darkred
+"set t_Co=256
+colorscheme vividchalk
 
 "Show whitespace, fullstops for trailing whitespace
 set list
@@ -75,7 +56,8 @@ set backupdir=~/.vim-tmp,~/tmp,/var/tmp,/tmp
 set noswapfile
 
 "no toolbar
-set guioptions=-T
+set guioptions-=T
+
 "no gui tab bar
 set guioptions-=e
 
@@ -92,7 +74,7 @@ set history=1024
 set incsearch
 
 "no wrapping
-set wrap!
+set nowrap
 
 "line numbers
 set number
@@ -110,7 +92,6 @@ set shiftwidth=2
 set autoindent
 set expandtab
 
-set scrolloff=3
 
 " Rayban & Peter
 let mapleader = ","
@@ -118,13 +99,14 @@ let mapleader = ","
 " FuzzyFinder and switchback commands
 map <leader>e :e#<CR>
 map <leader>b :FufBuffer<CR>
-map <leader>f :FufFile<CR>
+map <leader>f <Plug>PeepOpen
 map <leader><C-N> :FufFile **/<CR>
 map <D-e> :FufBuffer<CR>
 map <D-N> :FufFile **/<CR>
 
 " search
-map <leader>s :%s/
+nmap <leader>s :%s/
+vmap <leader>s :s/
 
 " Split screen vertically and move between screens.
 map <leader>v :vsp<CR>
@@ -135,8 +117,8 @@ map <leader>= ^W=
 map <leader>j ^Wj
 map <leader>k ^Wk
 
-" AckGrep current word
-map <leader>a :call AckGrep()<CR>
+" Add new windows towards the right and bottom.
+set splitbelow splitright
 
 " set question mark to be part of a VIM word. in Ruby it is!
 autocmd FileType ruby set isk=@,48-57,_,?,!,192-255
@@ -152,15 +134,10 @@ map <leader>rf :FufRenewCache<CR>
 
 " ctags again with gemhome added
 map <leader>t :!/usr/local/bin/ctags -R --exclude=.git --exclude=log * `rvm gemhome`/*<CR>
+map <leader>T :!rdoc -f tags -o tags * `rvm gemhome` --exclude=.git --exclude=log
 
 " F7 reformats the whole file and leaves you where you were (unlike gg)
 map <F7> mzgg=G'z :delmarks z<CR>
-
-
-" Turn on Ruby folding but unfold when you open a new file because it's
-" annoying
-"let ruby_fold=1
-"au BufAdd *.rb foldopen!
 
 " Write all writeable buffers when changing buffers or losing focus.
 autocmd FocusLost * silent! wall
@@ -171,19 +148,64 @@ set hidden
 
 " Show typed command prefixes while waiting for operator.
 set showcmd
-set ruler           " cursor position
 
-" more search options
-set hlsearch
-set smartcase
-" Open reposh
-map <C-G> :!reposh<CR>
-map <C-A> :!gitx<CR><CR>
 " In insert mode, use Cmd-<CR> to jump to a new line in insert mode, a la
 " TextMate.
 imap <D-CR> <ESC>o
 
-" Find tag
-map <D-˜> :FufTag<CR>
 " Change background color when inserting.
 let g:insert_mode_background_color = "#333333"
+
+" Find unused cucumber steps.
+command! CucumberFindUnusedSteps :call CucumberFindUnusedSteps()
+function! CucumberFindUnusedSteps()
+  let olderrorformat = &l:errorformat
+  try
+    set errorformat=%m#\ %f:%l
+    cexpr system('bundle exec cucumber --no-profile --no-color --format usage --dry-run features \| grep "NOT MATCHED BY ANY STEPS" -B1 \| egrep -v "(--\|NOT MATCHED BY ANY STEPS)"')
+    cwindow
+  finally
+    let &l:errorformat = olderrorformat
+  endtry
+endfunction
+
+" Open .vimrc file.  (Think Cmd-, [Preferences...] but with Shift.)
+map <D-<> :tabedit ~/.vimrc<CR>
+
+" Make command completion act more like bash
+set wildmode=list:longest
+
+" Start scrolling when the cursor is within 3 lines of the edge.
+set scrolloff=3
+
+" Scroll faster.
+nnoremap <C-e> 3<C-e>
+nnoremap <C-y> 3<C-y>
+
+" Pad comment delimeters with spaces.
+let NERDSpaceDelims = 1
+
+" Comment/uncomment lines.
+map <leader>/ <plug>NERDCommenterToggle
+
+" Copy current file path to system pasteboard.
+map <D-C> :let @* = expand("%")<CR>
+
+" Disable middle mouse button (which is easy to hit by accident).
+map <MiddleMouse> <Nop>
+imap <MiddleMouse> <Nop>
+
+" Make Y consistent with D and C.
+map Y y$
+
+" Don't time out during commands.
+set notimeout
+
+" Turn off <F1>
+map <F1> <Nop>
+
+" Machine-local vim settings.
+silent source ~/.vimrc.local
+
+" Don't prompt for file changes outside MacVim
+set autoread
