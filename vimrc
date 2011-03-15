@@ -37,9 +37,15 @@ map \| :NERDTreeFind<CR>
 "cocoa
 autocmd BufWritePre *.m,*.h,*.c,*.mm,*.cpp,*.hpp :%s/\s\+$//e
 "rails
-autocmd BufWritePre *.rb,*.yml,*.js,*.css,*.less,*.sass,*.html,*.xml,*.erb,*.haml :%s/\s\+$//e
+autocmd BufWritePre *.rb,*.yml,*.js,*.json,*.css,*.less,*.sass,*.html,*.xml,*.erb,*.haml :%s/\s\+$//e
 "misc
-autocmd BufWritePre *.java,*.php :%s/\s\+$//e
+autocmd BufWritePre *.java,*.php,*.feature :%s/\s\+$//e
+
+"highlight JSON files as javascript
+autocmd BufRead,BufNewFile *.json set filetype=javascript
+
+"highlight jasmine_fixture files as HTML
+autocmd BufRead,BufNewFile *.jasmine_fixture set filetype=html
 
 " SETTINGS """"""""""""""""""""""""""""""""
 "set t_Co=256
@@ -137,7 +143,7 @@ map <leader>t :!/usr/local/bin/ctags -R --exclude=.git --exclude=log * `rvm gemh
 map <leader>T :!rdoc -f tags -o tags * `rvm gemhome` --exclude=.git --exclude=log
 
 " F7 reformats the whole file and leaves you where you were (unlike gg)
-map <F7> mzgg=G'z :delmarks z<CR>
+map <silent> <F7> mzgg=G'z :delmarks z<CR>:echo "Reformatted."<CR>
 
 " Write all writeable buffers when changing buffers or losing focus.
 autocmd FocusLost * silent! wall
@@ -189,7 +195,7 @@ let NERDSpaceDelims = 1
 map <leader>/ <plug>NERDCommenterToggle
 
 " Copy current file path to system pasteboard.
-map <D-C> :let @* = expand("%")<CR>
+map <silent> <D-C> :let @* = expand("%")<CR>:echo "Copied: ".expand("%")<CR>
 
 " Disable middle mouse button (which is easy to hit by accident).
 map <MiddleMouse> <Nop>
@@ -203,9 +209,30 @@ set notimeout
 
 " Turn off <F1>
 map <F1> <Nop>
-
-" Machine-local vim settings.
-silent source ~/.vimrc.local
+imap <F1> <Nop>
 
 " Don't prompt for file changes outside MacVim
 set autoread
+
+" Highlight current row.
+set cursorline
+
+" Use paste mode when replacing. (Work in progress.)
+" vmap <silent> <C-K> :<C-U>call InPasteMode("<Plug>ReplaceVisual")<CR>
+" function! InPasteMode(command)
+  " let oldpaste = &l:paste
+  " try
+    " set paste
+    " execute "normal" "gv".a:command
+  " finally
+    " let &l:paste = oldpaste
+  " endtry
+" endfunction
+
+" Command-T
+let g:CommandTMaxHeight=20
+map <D-N> :CommandT<CR>
+
+" (Keep this at the end.)
+" Machine-local vim settings.
+silent source ~/.vimrc.local
