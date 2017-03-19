@@ -49,7 +49,7 @@ autocmd BufRead,BufNewFile *.jasmine_fixture set filetype=html
 
 " SETTINGS """"""""""""""""""""""""""""""""
 "set t_Co=256
-colorscheme vividchalk
+" colorscheme vividchalk
 
 "Show whitespace, fullstops for trailing whitespace
 set list
