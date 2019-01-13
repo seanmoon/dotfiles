@@ -160,7 +160,7 @@ set showcmd
 imap <D-CR> <ESC>o
 
 " Change background color when inserting.
-let g:insert_mode_background_color = "#333333"
+" let g:insert_mode_background_color = "#333333"
 
 " Find unused cucumber steps.
 command! CucumberFindUnusedSteps :call CucumberFindUnusedSteps()
